@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Openrouter ChatBot Website</title>
-    
+    <title>Ultimate ChatBot Website</title>
+
     <!-- MathJax Konfigürasyonu -->
     <script>
         window.MathJax = {
@@ -18,92 +18,133 @@
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <!-- Highlight.js için -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    
+
     <!-- Marked.js için (Markdown'dan HTML'e dönüştürme) -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            background-color: #f0f2f5; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f2f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 15px; /* Başlık altındaki boşluğu azalttık */
+            font-size: 1.8em; /* Başlık boyutunu biraz küçülttük */
         }
         #container {
-            width: 90%; 
-            max-width: 1600px; 
-            height: 90%; 
+            width: 95%; /* Genişliği biraz artırdık */
+            max-width: 1400px; /* Maksimum genişliği biraz azalttık */
+            height: 95%; /* Yüksekliği biraz artırdık */
             display: flex;
-            flex-direction: column; 
-            background-color: #ffffff; 
-            border: 1px solid #ddd; 
-            border-radius: 10px; 
-            padding: 20px 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            flex-direction: column;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px; /* İç dolguyu azalttık */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-        #chat { 
-            border: 1px solid #ccc; 
-            padding: 10px; 
-            height: 60%; 
-            overflow-y: auto; 
-            margin-bottom: 10px; 
-            background-color: #f9f9f9; 
+        #chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            /* height: 60%; */ /* Sabit yüksekliği kaldırdık */
+            flex-grow: 1; /* Kalan tüm boşluğu doldurmasını sağladık */
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
             border-radius: 6px;
         }
-        #userInput, #sendButton, #botSelect { 
-            width: 100%; 
-            margin: 5px 0; 
-            padding: 12px;
+        /* Genel form elemanları için stil - Padding ve margin azaltıldı */
+        #userInput, #sendButton, #botSelect, #apiKeyInput,
+        .slider-container select, #downloadButton {
+            width: 100%;
+            margin: 3px 0; /* Margin'i azalttık */
+            padding: 8px 12px; /* Padding'i azalttık */
             border-radius: 5px;
             border: 1px solid #ccc;
-            font-size: 16px;
+            font-size: 15px; /* Font boyutunu biraz küçülttük */
             box-sizing: border-box;
         }
+         /* Slider (range input) için özel stil - İlk versiyondaki gibi */
+         .slider-container input[type="range"] {
+             width: 100%;
+             margin: 3px 0; /* Margin'i azalttık */
+             box-sizing: border-box;
+             /* Tarayıcının varsayılan görünümünü kullanacak */
+         }
+
+         #apiKeyInput {
+             /* API Input özel stil */
+             font-family: 'Courier New', Courier, monospace;
+             background-color: #f8f8f8;
+         }
+
         #userInput {
-            height: 100px; 
-            resize: none; 
+            height: 80px; /* Textarea yüksekliğini azalttık */
+            resize: vertical; /* Sadece dikey yeniden boyutlandırmaya izin ver */
         }
-        #sendButton { 
-            background-color: #4CAF50; 
-            color: white; 
-            border: none; 
+        #sendButton {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
         #sendButton:hover {
             background-color: #45a049;
         }
+         #downloadButton {
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            /* padding: 12px; */ /* Yukarıdaki genel kuraldan alacak */
+            /* border-radius: 5px; */ /* Yukarıdaki genel kuraldan alacak */
+            /* margin: 5px 0; */ /* Yukarıdaki genel kuraldan alacak */
+            width: 100%;
+            /* font-size: 16px; */ /* Yukarıdaki genel kuraldan alacak */
+            box-sizing: border-box;
+         }
+         #downloadButton:hover {
+             background-color: #007bb5;
+         }
+
         .slider-container {
-            width: 100%; 
-            margin: 10px 0; 
+            width: 100%;
+            margin: 8px 0; /* Slider container margin'i azalttık */
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 3px; /* Label altındaki boşluğu azalttık */
             font-weight: bold;
             color: #333;
+            font-size: 14px; /* Label font boyutunu küçülttük */
         }
         select {
-            padding: 10px;
+            /* padding: 10px; */ /* Yukarıdaki genel kuraldan alacak */
             border-radius: 4px;
             border: 1px solid #ccc;
-            font-size: 16px;
+            /* font-size: 16px; */ /* Yukarıdaki genel kuraldan alacak */
             width: 100%;
             box-sizing: border-box;
             background-color: #fff;
         }
         .message {
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Mesajlar arasındaki boşluğu azalttık */
             display: flex;
             flex-direction: column;
         }
@@ -112,18 +153,20 @@
         }
         .message.chatgpt {
             align-items: flex-start;
+            flex-direction: row; /* Baloncuk ve düğme yan yana */
+            gap: 8px; /* Baloncuk ve düğme arasına boşluğu azalttık */
         }
         .message .bubble {
-            max-width: 80%;
-            padding: 10px 15px;
+            max-width: 85%; /* Baloncuk genişliğini biraz artırdık */
+            padding: 8px 12px; /* Baloncuk padding'ini azalttık */
             border-radius: 15px;
             position: relative;
             word-wrap: break-word;
-            font-size: 16px;
+            font-size: 15px; /* Baloncuk font boyutunu biraz küçülttük */
             line-height: 1.4;
         }
         .message.user .bubble {
-            background-color: #dcf8c6; 
+            background-color: #dcf8c6;
             color: #000;
             border-bottom-right-radius: 0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -133,109 +176,112 @@
             color: #000;
             border-bottom-left-radius: 0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            cursor: pointer;
+            /* cursor: pointer; */
         }
         pre {
             background-color: #2d2d2d;
             color: #ccc;
-            padding: 10px;
+            padding: 8px; /* Pre padding'ini azalttık */
             border-radius: 4px;
             overflow-x: auto;
             font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em; /* Kod font boyutunu küçülttük */
         }
         code {
             font-family: 'Courier New', Courier, monospace;
             background-color: #f5f5f5;
-            padding: 2px 4px;
+            padding: 1px 3px; /* Inline code padding'ini azalttık */
             border-radius: 4px;
+            font-size: 0.9em; /* Inline code font boyutunu küçülttük */
         }
         .MathJax_Display {
             background-color: #eef2ff;
-            padding: 10px;
+            padding: 8px; /* MathJax display padding'ini azalttık */
             border-left: 4px solid #5b9bd5;
             border-radius: 4px;
-            margin: 10px 0;
-            font-size: 1.2em;
+            margin: 8px 0; /* MathJax display margin'ini azalttık */
+            font-size: 1.1em; /* MathJax display font boyutunu biraz küçülttük */
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .mjx-chtml * {
-            font-size: 1.1em; 
-            color: #333; 
-            font-family: 'Georgia', serif; 
+            font-size: 1em; /* MathJax içindeki font boyutunu biraz küçülttük */
+            color: #333;
+            font-family: 'Georgia', serif;
         }
         /* Ham içerik için stil */
         .raw-content {
-            white-space: pre-wrap; /* Satır sonlarını koru */
-            word-wrap: break-word; /* Uzun kelimeleri kır */
-            background-color: #e9e9eb; /* Farklı arka plan rengi */
-            padding: 10px; /* Dolgu ekle */
-            border-radius: 8px; /* Yuvarlak köşeler */
-            font-family: 'Courier New', Courier, monospace; /* Monospace font */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #e9e9eb;
+            padding: 8px; /* Ham içerik padding'ini azalttık */
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
             color: #333;
+            font-size: 0.9em; /* Ham içerik font boyutunu küçülttük */
         }
         .rendered-content {
              /* İşlenmiş içerik için mevcut bubble stilleri geçerli olacak */
         }
-        /* Chatbot mesajları için flexbox düzeni */
-        .message.chatgpt {
-            align-items: flex-start;
-            flex-direction: row; /* Baloncuk ve düğme yan yana */
-            gap: 10px; /* Baloncuk ve düğme arasına boşluk */
-        }
-
         /* Kopyalama düğmesi stili */
         .copy-button {
-            background-color: #5b9bd5; /* Mavi renk */
+            background-color: #5b9bd5;
             color: white;
             border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
+            border-radius: 4px; /* Köşeleri biraz daha az yuvarlak yaptık */
+            padding: 4px 8px; /* Padding'i azalttık */
             cursor: pointer;
-            align-self: center; /* Düğmeyi dikeyde ortala */
+            align-self: center;
             transition: background-color 0.3s ease;
-            font-size: 14px;
-            flex-shrink: 0; /* Düğmenin küçülmesini engelle */
+            font-size: 12px; /* Font boyutunu küçülttük */
+            flex-shrink: 0;
         }
 
         .copy-button:hover {
-            background-color: #4682b4; /* Daha koyu mavi */
+            background-color: #4682b4;
         }
 
         /* LaTeX Toggle button style */
         .toggle-latex-button {
-            background-color: #ff9800; /* Turuncu renk */
+            background-color: #ff9800;
             color: white;
             border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
+            border-radius: 4px; /* Köşeleri biraz daha az yuvarlak yaptık */
+            padding: 4px 8px; /* Padding'i azalttık */
             cursor: pointer;
-            align-self: center; /* Düğmeyi dikeyde ortala */
+            align-self: center;
             transition: background-color 0.3s ease;
-            font-size: 14px;
-            flex-shrink: 0; /* Düğmenin küçülmesini engelle */
-            margin-left: 5px; /* Kopyala düğmesi ile arasına boşluk */
+            font-size: 12px; /* Font boyutunu küçülttük */
+            flex-shrink: 0;
+            margin-left: 5px;
         }
 
         .toggle-latex-button:hover {
-            background-color: #f57c00; /* Daha koyu turuncu */
+            background-color: #f57c00;
         }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center; color: #333; margin-bottom: 20px;">Ultimate ChatBots OpenRouter</h1>
+    <h1>Ultimate ChatBots OpenRouter</h1>
     <div id="container">
         <div id="chat"></div>
-        
+
+        <!-- API Anahtarı Input Alanı -->
+        <div class="slider-container">
+            <label for="apiKeyInput">OpenRouter API Key:</label>
+            <input type="password" id="apiKeyInput" placeholder="API Anahtarınızı Buraya Girin">
+            <!-- Güvenlik için type="password" kullanmayı düşünebilirsiniz -->
+        </div>
+
         <div class="slider-container">
             <label for="botSelect">Bot Seçin:</label>
             <select id="botSelect"></select>
         </div>
-        
+
         <div class="slider-container">
             <label for="temperature">Temperature: <span id="tempValue">0.5</span></label>
             <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.5" />
         </div>
-        
+
         <div class="slider-container">
             <label for="maxTokens">Max Tokens: <span id="maxTokensValue">4096</span></label>
             <input type="range" id="maxTokens" min="1024" max="10240" step="1024" value="4096" />
@@ -243,15 +289,14 @@
 
         <textarea id="userInput" placeholder="Mesajınızı yazın..."></textarea>
         <button id="sendButton">Gönder</button>
-        <button id="downloadButton" style="background-color: #008CBA; color: white; border: none; cursor: pointer; transition: background-color 0.3s ease; padding: 12px; border-radius: 5px; margin: 5px 0; width: 100%; font-size: 16px; box-sizing: border-box;">Sohbeti İndir (TXT)</button>
+        <button id="downloadButton">Sohbeti İndir (TXT)</button>
     </div>
 
     <script>
-        const openrouterApiKey = 'your-openrouter-api-key'; // OpenRouter API anahtarınızı buraya ekleyin
-        
+        // API URL'si sabit kalıyor
         const openrouterApiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-        
-        const systemMessage = "You work as a coding and math assistant."; 
+
+        const systemMessage = "You work as a coding and math assistant.";
 
         const chatDiv = document.getElementById('chat');
         const userInput = document.getElementById('userInput');
@@ -261,88 +306,79 @@
         const tempValueDisplay = document.getElementById('tempValue');
         const maxTokensValueDisplay = document.getElementById('maxTokensValue');
         const botSelect = document.getElementById('botSelect');
-		
+        const apiKeyInput = document.getElementById('apiKeyInput'); // API Key input alanını seçiyoruz
+
         let conversationHistory = [
             { role: "system", content: systemMessage }
         ];
 
+        // Bot tanımlarında artık API anahtarına gerek yok, input alanından okunacak
         const bots = {
             "openai-gpt-4o-mini": {
                 platform: "openai",
                 displayName: "GPT-4o Mini",
                 model: "openai/gpt-4o-mini",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                apiUrl: openrouterApiUrl
             },
             "openai-gpt-4o": {
                 platform: "openai",
                 displayName: "GPT-4o",
                 model: "openai/gpt-4o",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                apiUrl: openrouterApiUrl
             },
-            "openai-gpt-4.1-nano": {
-                platform: "openai",
-                displayName: "GPT 4.1 nano",
-                model: "openai/gpt-4.1-nano",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
-            },
-            "openai-gpt-4.1": {
-                platform: "openai",
-                displayName: "GPT 4.1",
-                model: "openai/gpt-4.1",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
-            },
+             "openai-gpt-4.1-nano": {
+                 platform: "openai",
+                 displayName: "GPT 4.1 nano",
+                 model: "openai/gpt-4.1-nano",
+                 apiUrl: openrouterApiUrl
+             },
+             "openai-gpt-4.1": {
+                 platform: "openai",
+                 displayName: "GPT 4.1",
+                 model: "openai/gpt-4.1",
+                 apiUrl: openrouterApiUrl
+             },
             "openai-gpt-3.5-turbo": {
                 platform: "openai",
                 displayName: "GPT-3.5 Turbo",
                 model: "openai/gpt-3.5-turbo",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                apiUrl: openrouterApiUrl
             },
             "gemini-2.5-flash-preview-think": {
                 platform: "gemini",
-                displayName: "Gemini 2.5 Flash",
-                model: "google/gemini-2.5-flash",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                displayName: "Gemini 2.5 Flash preview thinking",
+                model: "google/gemini-2.5-flash-preview:thinking",
+                apiUrl: openrouterApiUrl
             },
-            "gemini-2.5-pro-preview-03-25": {
-                platform: "gemini",
-                displayName: "Gemini 2.5 Pro",
-                model: "google/gemini-2.5-pro",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
-            },
+             "gemini-2.5-pro-preview-03-25": {
+                 platform: "gemini",
+                 displayName: "Gemini 2.5 Pro",
+                 model: "google/gemini-2.5-pro-preview",
+                 apiUrl: openrouterApiUrl
+             },
             "azure-llama-3.2-90B-vision-instruct": {
                 platform: "Llama",
                 displayName: "Llama 3.2 90B Vision Instruct",
                 model: "meta-llama/Llama-3.2-90B-Vision-Instruct",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                apiUrl: openrouterApiUrl
             },
             "azure-llama-3.2-11B-vision-instruct": {
-                platform: "Llama",
-                displayName: "Llama 3.2 11B Vision Instruct",
-                model: "meta-llama/llama-3.2-11b-vision-instruct",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
-            },
+                 platform: "Llama",
+                 displayName: "Llama 3.2 11B Vision Instruct",
+                 model: "meta-llama/llama-3.2-11b-vision-instruct",
+                 apiUrl: openrouterApiUrl
+             },
             "deepseek-r1": {
                 platform: "DeepSeek",
                 displayName: "DeepSeek R1",
                 model: "deepseek/deepseek-r1",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                apiUrl: openrouterApiUrl
             },
-            "automatic": {
+            "openrouter-automatic": {
                 platform: "OpenRouter",
-                displayName: "auto bot selector",
+                displayName: "automatic",
                 model: "openrouter/auto",
-                apiUrl: openrouterApiUrl,
-                apiKey: openrouterApiKey
+                apiUrl: openrouterApiUrl
             }
         };
 
@@ -360,7 +396,7 @@
             for (const platform in platforms) {
                 const optgroup = document.createElement('optgroup');
                 optgroup.label = platform.charAt(0).toUpperCase() + platform.slice(1);
-                
+
                 platforms[platform].forEach(bot => {
                     const option = document.createElement('option');
                     option.value = bot.model;
@@ -384,15 +420,25 @@
 
         sendButton.addEventListener('click', async () => {
             const userMessage = userInput.value.trim();
-            if (userMessage === "") return;
+            if (userMessage === "") return; // Boş mesaj gönderme
+
+            // API anahtarını kontrol et
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                appendMessage("chatgpt", "Lütfen API anahtarınızı API Key alanına girin.");
+                return; // Anahtar yoksa gönderme işlemini durdur
+            }
 
             appendMessage("user", userMessage);
             conversationHistory.push({ role: "user", content: userMessage });
-            userInput.value = '';
+            userInput.value = ''; // Mesajı gönderdikten sonra input alanını temizle
+            sendButton.disabled = true; // Yanıt gelene kadar gönderme tuşunu devre dışı bırak
 
-            const response = await getBotResponse();
+            const response = await getBotResponse(apiKey); // API anahtarını fonksiyona geçir
             appendMessage("chatgpt", response);
             conversationHistory.push({ role: "assistant", content: response });
+
+            sendButton.disabled = false; // Yanıt geldiğinde gönderme tuşunu tekrar etkinleştir
         });
 
         function appendMessage(sender, message) {
@@ -429,7 +475,8 @@
 
                 // Kopyalama tuşuna tıklama olay dinleyicisi ekle
                 copyButton.addEventListener('click', () => {
-                     navigator.clipboard.writeText(message).then(() => {
+                     // Raw content'ten kopyala, böylece ham metni alırsın
+                     navigator.clipboard.writeText(rawContentDiv.textContent).then(() => {
                          console.log("Mesaj kopyalandı (ham metin).");
                          copyButton.textContent = 'Kopyalandı!';
                          setTimeout(() => {
@@ -447,6 +494,14 @@
                 // LaTeX Geçiş tuşu
                 const toggleLatexButton = document.createElement('button');
                 toggleLatexButton.classList.add('toggle-latex-button');
+                // İçerikte MathJax işlenebilir işaretçi var mı kontrol et
+                const hasLatex = message.includes('$') || message.includes('\\(') || message.includes('[') || message.includes('$$');
+
+                // Eğer LaTeX işaretçisi yoksa toggle tuşunu gizle
+                if (!hasLatex) {
+                     toggleLatexButton.style.display = 'none';
+                }
+
                 toggleLatexButton.textContent = 'Ham Gör'; // Başlangıç metni
 
                 // LaTeX geçiş tuşuna tıklama olay dinleyicisi ekle
@@ -461,29 +516,19 @@
                          rawContentDiv.style.display = 'none';
                          renderedContentDiv.style.display = 'block';
                          toggleLatexButton.textContent = 'Ham Gör'; // Tuş metnini güncelle
-                         // MathJax'in burada yeniden işlenmesine gerek yok
+                         // MathJax'in burada yeniden işlenmesine gerek yok, çünkü başlangıçta işlendi
                      }
                 });
 
                 // Kopyalama ve LaTeX geçiş tuşlarını mesaj div'ine ekle
                 messageDiv.appendChild(copyButton);
                 messageDiv.appendChild(toggleLatexButton);
-
-                // Chatbot mesajları için bubble'a tıklama olay dinleyicisini kaldır
-                // (veya farklı bir işlev atayın)
-                // bubbleDiv.addEventListener('click', () => {
-                //      console.log("Chatbot mesaj bubble tıklandı (şu anda bir işlev atanmadı).");
-                // });
-
-
             } else {
                 // Kullanıcı mesajları için bubble'a tıklama olayı (isteğe bağlı, şu anda bir şey yapmıyor)
-                 bubbleDiv.addEventListener('click', () => {
-                     console.log("Kullanıcı mesajı tıklandı.");
-                     // Kullanıcı mesajlarına tıklama için ek işlevsellik eklenebilir.
-                 });
+                 // bubbleDiv.addEventListener('click', () => {
+                 //     console.log("Kullanıcı mesajı tıklandı.");
+                 // });
             }
-
 
             // Mesaj div'ini sohbet alanına ekle
             chatDiv.appendChild(messageDiv);
@@ -491,20 +536,23 @@
             // Aşağı kaydır
             chatDiv.scrollTop = chatDiv.scrollHeight;
 
-            // İşlenmiş içeriği vurgulama için işle
+            // İşlenmiş içeriği vurgulama için işle (renderedContentDiv içinde)
             renderedContentDiv.querySelectorAll('pre code').forEach((block) => {
                 hljs.highlightElement(block);
             });
 
-            // İşlenmiş içeriği MathJax (LaTeX işleme) için işle
+            // İşlenmiş içeriği MathJax (LaTeX işleme) için işle (renderedContentDiv içinde)
             // MathJax, DOM'da zaten bulunan öğeler üzerinde çalışacaktır
+            // appendChild'dan sonra MathJax'in işlemesini beklemek önemlidir.
             MathJax.typesetPromise([renderedContentDiv]).catch((err) => {
                 console.error('MathJax hata:', err);
                 // Gerekirse MathJax hatalarını ele alın
             });
         }
 
-        async function getBotResponse() {
+
+        // getBotResponse fonksiyonu API anahtarını parametre olarak alacak
+        async function getBotResponse(apiKey) {
             const selectedBotModel = botSelect.value;
             const botConfig = Object.values(bots).find(bot => bot.model === selectedBotModel);
 
@@ -512,9 +560,10 @@
                 return "Seçilen model yapılandırmada bulunamadı.";
             }
 
+            // API anahtarını parametreden alıyoruz
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${botConfig.apiKey}`
+                'Authorization': `Bearer ${apiKey}`
             };
 
             let body = {};
@@ -531,19 +580,33 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Hata detaylarını yakalamaya çalışalım
+                    const errorBody = await response.text(); // Yanıt gövdesini metin olarak al
+                    console.error(`HTTP error! status: ${response.status}`, errorBody);
+                    try {
+                         const errorJson = JSON.parse(errorBody);
+                         // OpenRouter hataları genellikle { "error": { "message": "...", "type": "..." } } formatında
+                         if (errorJson && errorJson.error && errorJson.error.message) {
+                              return `API Hatası (${response.status}): ${errorJson.error.message}`;
+                         } else {
+                             return `HTTP hatası oluştu! Durum: ${response.status}. Detay: ${errorBody.substring(0, 200)}...`; // İlk 200 karakteri göster
+                         }
+                    } catch (e) {
+                         // JSON parse edilemezse ham hatayı göster
+                         return `HTTP hatası oluştu! Durum: ${response.status}. Detay: ${errorBody.substring(0, 200)}...`;
+                    }
+
                 }
 
                 const data = await response.json();
 
-                if (botConfig.platform === "gemini") {
-                    return data.choices[0].message.content || "Yanıt alınamadı.";
-                } else {
-                    return data.choices[0].message.content || "Yanıt alınamadı.";
-                }
+                // OpenRouter formatı genellikle standardizedir, doğrudan content'i alabiliriz.
+                // Eğer spesifik bir bot için farklı bir yanıt yapısı gelirse burada düzenleme yapılabilir.
+                return data.choices[0].message.content || "Yanıt alınamadı.";
+
             } catch (error) {
                 console.error('Error fetching bot response:', error);
-                return "Üzgünüm, bir hata oluştu.";
+                return "Üzgünüm, bir ağ hatası oluştu veya sunucuya ulaşılamadı.";
             }
         }
 
@@ -573,6 +636,16 @@
         if (downloadButton) {
             downloadButton.addEventListener('click', downloadChatHistory);
         }
+
+        // Enter tuşuyla mesaj gönderme
+        userInput.addEventListener('keypress', function(event) {
+            // Shift + Enter satır atlamak için, sadece Enter göndermek için
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // Varsayılan Enter davranışını (yeni satır) engelle
+                sendButton.click(); // Gönder tuşuna tıkla
+            }
+        });
+
 
     </script>
 </body>
