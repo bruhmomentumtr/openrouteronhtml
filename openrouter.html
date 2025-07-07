@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Openrouter ChatBot Website</title>
+    
+    <!-- MathJax Konfigürasyonu -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]'], ['[', ']']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Highlight.js için -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    
+    <!-- Marked.js için (Markdown'dan HTML'e dönüştürme) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            background-color: #f0f2f5; 
+        }
+        #container {
+            width: 90%; 
+            max-width: 1600px; 
+            height: 90%; 
+            display: flex;
+            flex-direction: column; 
+            background-color: #ffffff; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            padding: 20px 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        #chat { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            height: 60%; 
+            overflow-y: auto; 
+            margin-bottom: 10px; 
+            background-color: #f9f9f9; 
+            border-radius: 6px;
+        }
+        #userInput, #sendButton, #botSelect { 
+            width: 100%; 
+            margin: 5px 0; 
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        #userInput {
+            height: 100px; 
+            resize: none; 
+        }
+        #sendButton { 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #sendButton:hover {
+            background-color: #45a049;
+        }
+        .slider-container {
+            width: 100%; 
+            margin: 10px 0; 
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.user {
+            align-items: flex-end;
+        }
+        .message.chatgpt {
+            align-items: flex-start;
+        }
+        .message .bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            position: relative;
+            word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        .message.user .bubble {
+            background-color: #dcf8c6; 
+            color: #000;
+            border-bottom-right-radius: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .message.chatgpt .bubble {
+            background-color: #f1f0f0;
+            color: #000;
+            border-bottom-left-radius: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .MathJax_Display {
+            background-color: #eef2ff;
+            padding: 10px;
+            border-left: 4px solid #5b9bd5;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 1.2em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .mjx-chtml * {
+            font-size: 1.1em; 
+            color: #333; 
+            font-family: 'Georgia', serif; 
+        }
+        /* Ham içerik için stil */
+        .raw-content {
+            white-space: pre-wrap; /* Satır sonlarını koru */
+            word-wrap: break-word; /* Uzun kelimeleri kır */
+            background-color: #e9e9eb; /* Farklı arka plan rengi */
+            padding: 10px; /* Dolgu ekle */
+            border-radius: 8px; /* Yuvarlak köşeler */
+            font-family: 'Courier New', Courier, monospace; /* Monospace font */
+            color: #333;
+        }
+        .rendered-content {
+             /* İşlenmiş içerik için mevcut bubble stilleri geçerli olacak */
+        }
+        /* Chatbot mesajları için flexbox düzeni */
+        .message.chatgpt {
+            align-items: flex-start;
+            flex-direction: row; /* Baloncuk ve düğme yan yana */
+            gap: 10px; /* Baloncuk ve düğme arasına boşluk */
+        }
+
+        /* Kopyalama düğmesi stili */
+        .copy-button {
+            background-color: #5b9bd5; /* Mavi renk */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            align-self: center; /* Düğmeyi dikeyde ortala */
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+            flex-shrink: 0; /* Düğmenin küçülmesini engelle */
+        }
+
+        .copy-button:hover {
+            background-color: #4682b4; /* Daha koyu mavi */
+        }
+
+        /* LaTeX Toggle button style */
+        .toggle-latex-button {
+            background-color: #ff9800; /* Turuncu renk */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            align-self: center; /* Düğmeyi dikeyde ortala */
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+            flex-shrink: 0; /* Düğmenin küçülmesini engelle */
+            margin-left: 5px; /* Kopyala düğmesi ile arasına boşluk */
+        }
+
+        .toggle-latex-button:hover {
+            background-color: #f57c00; /* Daha koyu turuncu */
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #333; margin-bottom: 20px;">Ultimate ChatBots OpenRouter</h1>
+    <div id="container">
+        <div id="chat"></div>
+        
+        <div class="slider-container">
+            <label for="botSelect">Bot Seçin:</label>
+            <select id="botSelect"></select>
+        </div>
+        
+        <div class="slider-container">
+            <label for="temperature">Temperature: <span id="tempValue">0.5</span></label>
+            <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.5" />
+        </div>
+        
+        <div class="slider-container">
+            <label for="maxTokens">Max Tokens: <span id="maxTokensValue">4096</span></label>
+            <input type="range" id="maxTokens" min="1024" max="10240" step="1024" value="4096" />
+        </div>
+
+        <textarea id="userInput" placeholder="Mesajınızı yazın..."></textarea>
+        <button id="sendButton">Gönder</button>
+        <button id="downloadButton" style="background-color: #008CBA; color: white; border: none; cursor: pointer; transition: background-color 0.3s ease; padding: 12px; border-radius: 5px; margin: 5px 0; width: 100%; font-size: 16px; box-sizing: border-box;">Sohbeti İndir (TXT)</button>
+    </div>
+
+    <script>
+        const openrouterApiKey = 'your-openrouter-api-key'; // OpenRouter API anahtarınızı buraya ekleyin
+        
+        const openrouterApiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+        
+        const systemMessage = "You work as a coding and math assistant."; 
+
+        const chatDiv = document.getElementById('chat');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const temperatureSlider = document.getElementById('temperature');
+        const maxTokensSlider = document.getElementById('maxTokens');
+        const tempValueDisplay = document.getElementById('tempValue');
+        const maxTokensValueDisplay = document.getElementById('maxTokensValue');
+        const botSelect = document.getElementById('botSelect');
+		
+        let conversationHistory = [
+            { role: "system", content: systemMessage }
+        ];
+
+        const bots = {
+            "openai-gpt-4o-mini": {
+                platform: "openai",
+                displayName: "GPT-4o Mini",
+                model: "openai/gpt-4o-mini",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "openai-gpt-4o": {
+                platform: "openai",
+                displayName: "GPT-4o",
+                model: "openai/gpt-4o",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "openai-gpt-4.1-nano": {
+                platform: "openai",
+                displayName: "GPT 4.1 nano",
+                model: "openai/gpt-4.1-nano",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "openai-gpt-4.1": {
+                platform: "openai",
+                displayName: "GPT 4.1",
+                model: "openai/gpt-4.1",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "openai-gpt-3.5-turbo": {
+                platform: "openai",
+                displayName: "GPT-3.5 Turbo",
+                model: "openai/gpt-3.5-turbo",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "gemini-2.5-flash-preview-think": {
+                platform: "gemini",
+                displayName: "Gemini 2.5 Flash",
+                model: "google/gemini-2.5-flash",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "gemini-2.5-pro-preview-03-25": {
+                platform: "gemini",
+                displayName: "Gemini 2.5 Pro",
+                model: "google/gemini-2.5-pro",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "azure-llama-3.2-90B-vision-instruct": {
+                platform: "Llama",
+                displayName: "Llama 3.2 90B Vision Instruct",
+                model: "meta-llama/Llama-3.2-90B-Vision-Instruct",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "azure-llama-3.2-11B-vision-instruct": {
+                platform: "Llama",
+                displayName: "Llama 3.2 11B Vision Instruct",
+                model: "meta-llama/llama-3.2-11b-vision-instruct",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "deepseek-r1": {
+                platform: "DeepSeek",
+                displayName: "DeepSeek R1",
+                model: "deepseek/deepseek-r1",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            },
+            "automatic": {
+                platform: "OpenRouter",
+                displayName: "auto bot selector",
+                model: "openrouter/auto",
+                apiUrl: openrouterApiUrl,
+                apiKey: openrouterApiKey
+            }
+        };
+
+        function populateBotSelect() {
+            const platforms = {};
+
+            for (const key in bots) {
+                const bot = bots[key];
+                if (!platforms[bot.platform]) {
+                    platforms[bot.platform] = [];
+                }
+                platforms[bot.platform].push(bot);
+            }
+
+            for (const platform in platforms) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = platform.charAt(0).toUpperCase() + platform.slice(1);
+                
+                platforms[platform].forEach(bot => {
+                    const option = document.createElement('option');
+                    option.value = bot.model;
+                    option.textContent = bot.displayName;
+                    optgroup.appendChild(option);
+                });
+
+                botSelect.appendChild(optgroup);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', populateBotSelect);
+
+        temperatureSlider.addEventListener('input', () => {
+            tempValueDisplay.textContent = temperatureSlider.value;
+        });
+
+        maxTokensSlider.addEventListener('input', () => {
+            maxTokensValueDisplay.textContent = maxTokensSlider.value;
+        });
+
+        sendButton.addEventListener('click', async () => {
+            const userMessage = userInput.value.trim();
+            if (userMessage === "") return;
+
+            appendMessage("user", userMessage);
+            conversationHistory.push({ role: "user", content: userMessage });
+            userInput.value = '';
+
+            const response = await getBotResponse();
+            appendMessage("chatgpt", response);
+            conversationHistory.push({ role: "assistant", content: response });
+        });
+
+        function appendMessage(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('bubble');
+
+            // Ham ve işlenmiş içerik için div'ler oluştur
+            const rawContentDiv = document.createElement('div');
+            rawContentDiv.classList.add('raw-content');
+            rawContentDiv.textContent = message; // Ham metni sakla
+            rawContentDiv.style.display = 'none'; // Başlangıçta ham içeriği gizle
+
+            const renderedContentDiv = document.createElement('div');
+            renderedContentDiv.classList.add('rendered-content');
+            // Markdown'ı, potansiyel LaTeX işaretleyicileri dahil olmak üzere dönüştürmek için marked.parse kullanın
+            renderedContentDiv.innerHTML = marked.parse(message); // İşlenmiş HTML'i sakla
+
+            // Div'leri bubble'a ekle
+            bubbleDiv.appendChild(rawContentDiv);
+            bubbleDiv.appendChild(renderedContentDiv);
+
+            // Bubble'ı mesaj div'ine ekle
+            messageDiv.appendChild(bubbleDiv);
+
+            // Eğer gönderen chatgpt ise kopyalama ve LaTeX geçiş tuşları ekle
+            if (sender === "chatgpt") {
+                // Kopyalama tuşu
+                const copyButton = document.createElement('button');
+                copyButton.classList.add('copy-button');
+                copyButton.textContent = 'Kopyala'; // Düğme metni
+
+                // Kopyalama tuşuna tıklama olay dinleyicisi ekle
+                copyButton.addEventListener('click', () => {
+                     navigator.clipboard.writeText(message).then(() => {
+                         console.log("Mesaj kopyalandı (ham metin).");
+                         copyButton.textContent = 'Kopyalandı!';
+                         setTimeout(() => {
+                             copyButton.textContent = 'Kopyala';
+                         }, 2000);
+                     }).catch(err => {
+                         console.error('Kopyalama hatası:', err);
+                          copyButton.textContent = 'Kopyalama Başarısız!';
+                            setTimeout(() => {
+                                copyButton.textContent = 'Kopyala';
+                            }, 2000);
+                     });
+                });
+
+                // LaTeX Geçiş tuşu
+                const toggleLatexButton = document.createElement('button');
+                toggleLatexButton.classList.add('toggle-latex-button');
+                toggleLatexButton.textContent = 'Ham Gör'; // Başlangıç metni
+
+                // LaTeX geçiş tuşuna tıklama olay dinleyicisi ekle
+                toggleLatexButton.addEventListener('click', () => {
+                     if (rawContentDiv.style.display === 'none') {
+                         // Şu anda işlenmiş gösteriliyor, ham'a geçiş yap
+                         rawContentDiv.style.display = 'block';
+                         renderedContentDiv.style.display = 'none';
+                         toggleLatexButton.textContent = 'Render Gör'; // Tuş metnini güncelle
+                     } else {
+                         // Şu anda ham gösteriliyor, işlenmiş'e geçiş yap
+                         rawContentDiv.style.display = 'none';
+                         renderedContentDiv.style.display = 'block';
+                         toggleLatexButton.textContent = 'Ham Gör'; // Tuş metnini güncelle
+                         // MathJax'in burada yeniden işlenmesine gerek yok
+                     }
+                });
+
+                // Kopyalama ve LaTeX geçiş tuşlarını mesaj div'ine ekle
+                messageDiv.appendChild(copyButton);
+                messageDiv.appendChild(toggleLatexButton);
+
+                // Chatbot mesajları için bubble'a tıklama olay dinleyicisini kaldır
+                // (veya farklı bir işlev atayın)
+                // bubbleDiv.addEventListener('click', () => {
+                //      console.log("Chatbot mesaj bubble tıklandı (şu anda bir işlev atanmadı).");
+                // });
+
+
+            } else {
+                // Kullanıcı mesajları için bubble'a tıklama olayı (isteğe bağlı, şu anda bir şey yapmıyor)
+                 bubbleDiv.addEventListener('click', () => {
+                     console.log("Kullanıcı mesajı tıklandı.");
+                     // Kullanıcı mesajlarına tıklama için ek işlevsellik eklenebilir.
+                 });
+            }
+
+
+            // Mesaj div'ini sohbet alanına ekle
+            chatDiv.appendChild(messageDiv);
+
+            // Aşağı kaydır
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+
+            // İşlenmiş içeriği vurgulama için işle
+            renderedContentDiv.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+
+            // İşlenmiş içeriği MathJax (LaTeX işleme) için işle
+            // MathJax, DOM'da zaten bulunan öğeler üzerinde çalışacaktır
+            MathJax.typesetPromise([renderedContentDiv]).catch((err) => {
+                console.error('MathJax hata:', err);
+                // Gerekirse MathJax hatalarını ele alın
+            });
+        }
+
+        async function getBotResponse() {
+            const selectedBotModel = botSelect.value;
+            const botConfig = Object.values(bots).find(bot => bot.model === selectedBotModel);
+
+            if (!botConfig) {
+                return "Seçilen model yapılandırmada bulunamadı.";
+            }
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${botConfig.apiKey}`
+            };
+
+            let body = {};
+            body.model = botConfig.model;
+            body.temperature = parseFloat(temperatureSlider.value);
+            body.max_tokens = parseInt(maxTokensSlider.value);
+            body.messages = conversationHistory;
+
+            try {
+                const response = await fetch(botConfig.apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (botConfig.platform === "gemini") {
+                    return data.choices[0].message.content || "Yanıt alınamadı.";
+                } else {
+                    return data.choices[0].message.content || "Yanıt alınamadı.";
+                }
+            } catch (error) {
+                console.error('Error fetching bot response:', error);
+                return "Üzgünüm, bir hata oluştu.";
+            }
+        }
+
+        // Sohbeti TXT olarak indirme fonksiyonu
+        function downloadChatHistory() {
+            let chatText = '';
+            // System mesajını hariç tutarak geçmişi döngüye al
+            for (let i = 1; i < conversationHistory.length; i++) {
+                const message = conversationHistory[i];
+                const sender = message.role === "user" ? "Sen" : "Bot";
+                chatText += `${sender}: ${message.content}\n\n`;
+            }
+
+            const blob = new Blob([chatText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sohbet_gecmisi.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // Bellek sızıntısını önle
+        }
+
+        // İndirme tuşuna tıklama olay dinleyicisi ekle
+        const downloadButton = document.getElementById('downloadButton');
+        if (downloadButton) {
+            downloadButton.addEventListener('click', downloadChatHistory);
+        }
+
+    </script>
+</body>
+</html>
