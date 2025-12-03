@@ -25,40 +25,46 @@ let allModelsList = [];
 
 // --- AÇILIŞ ---
 async function initApp() {
+    // 1. Animasyonları Yükle
     await preloadAnimations();
+    
     loadChatHistory();
 
-    // Kayıtlı ayarları yükle
     apiKeyInput.value = localStorage.getItem('apikey') || '';
     modelInput.value = localStorage.getItem('model') || 'openrouter/auto';
     systemPromptInput.value = localStorage.getItem('sysprompt') || "Sen yardımsever bir asistansın.";
 
-    // Key varsa modelleri çek (Otomatik kontrol opsiyonel)
     if(apiKeyInput.value && modelList.options.length <= 1) fetchModels();
 }
 
-// --- ÖN YÜKLEME ---
+// --- ÖN YÜKLEME (DOSYA YOLLARI DÜZELTİLDİ) ---
 async function preloadAnimations() {
     try {
+        // GitHub Pages alt klasörde çalışsa bile bu göreceli yollar çalışır.
+        // Klasör adı 'lottie' (küçük harf) olmalı!
+        
         const res1 = await fetch('lottie/Loading_Paperplane.json');
+        if(!res1.ok) throw new Error("Paperplane bulunamadı");
         const blob1 = await res1.blob();
         paperplaneUrl = URL.createObjectURL(blob1);
 
         const res2 = await fetch('lottie/Delete_animation.json');
+        if(!res2.ok) throw new Error("Delete animasyonu bulunamadı");
         const blob2 = await res2.blob();
         trashUrl = URL.createObjectURL(blob2);
+        
+        console.log("Animasyonlar yüklendi ✅");
     } catch (e) {
+        console.error("Animasyon hatası:", e);
+        // Hata durumunda da string olarak yolu verelim, belki Lottie Player kendisi çözer
         paperplaneUrl = "lottie/Loading_Paperplane.json";
     }
 }
 
-// --- API KEY KONTROLÜ (MANUEL) ---
+// --- API KONTROL ---
 async function checkApiKey() {
     const key = apiKeyInput.value.trim();
-    if (!key) {
-        alert("Lütfen önce bir API anahtarı girin.");
-        return;
-    }
+    if (!key) { alert("API Key giriniz!"); return; }
 
     checkKeyBtn.innerText = "⏳";
     checkKeyBtn.disabled = true;
@@ -76,20 +82,16 @@ async function checkApiKey() {
             apiKeyInput.style.borderColor = "#00ff9d";
             apiStatusSpan.style.display = "block";
             apiStatusSpan.style.color = "#00ff9d";
-            
             const label = data.data?.label || "Key";
-            const limit = data.data?.limit ? ` (Limit: ${data.data.limit})` : "";
-            apiStatusSpan.innerText = `✅ Doğrulandı: ${label}${limit}`;
-            
+            apiStatusSpan.innerText = `✅ Doğrulandı: ${label}`;
             saveSettings();
             if(modelList.options.length <= 1) fetchModels();
-
         } else { throw new Error("Geçersiz"); }
     } catch (err) {
         apiKeyInput.style.borderColor = "#ff4d4d";
         apiStatusSpan.style.display = "block";
         apiStatusSpan.style.color = "#ff4d4d";
-        apiStatusSpan.innerText = "❌ Geçersiz API Anahtarı";
+        apiStatusSpan.innerText = "❌ Geçersiz";
     } finally {
         checkKeyBtn.innerText = "🔑";
         checkKeyBtn.disabled = false;
@@ -97,7 +99,7 @@ async function checkApiKey() {
 }
 checkKeyBtn.addEventListener('click', checkApiKey);
 
-// --- OPENROUTER ÇAĞRISI (GENEL) ---
+// --- OPENROUTER İSTEĞİ ---
 async function fetchOpenRouter(endpoint, body = null, method = 'GET') {
     const key = apiKeyInput.value.trim();
     if (!key) throw new Error("API Key eksik");
@@ -107,20 +109,16 @@ async function fetchOpenRouter(endpoint, body = null, method = 'GET') {
         "HTTP-Referer": window.location.href,
         "X-Title": "GitHub Pages WebUI"
     };
-
     if (method === 'POST') headers["Content-Type"] = "application/json";
 
     const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
 
     const res = await fetch(`https://openrouter.ai/api/v1${endpoint}`, options);
-    
     if (!res.ok) {
         const errText = await res.text();
-        try {
-            const errJson = JSON.parse(errText);
-            throw new Error(errJson.error?.message || "API Hatası");
-        } catch { throw new Error(`Hata: ${res.status} - ${errText}`); }
+        try { throw new Error(JSON.parse(errText).error?.message || "Hata"); }
+        catch { throw new Error(`Hata: ${res.status}`); }
     }
     return await res.json();
 }
@@ -136,7 +134,7 @@ async function fetchModels() {
             const saved = localStorage.getItem('model');
             if(saved) modelInput.value = saved;
         }
-    } catch (err) { alert("Modeller alınamadı: " + err.message); } 
+    } catch (err) { console.error(err); } 
     finally { refreshBtn.innerText = "🔄 Listeyi Yenile"; }
 }
 
@@ -149,8 +147,7 @@ function renderModelList(filterText) {
 
     const lowerFilter = filterText.toLowerCase();
     allModelsList.forEach(m => {
-        const name = (m.name || m.id).toLowerCase();
-        if (name.includes(lowerFilter) || m.id.toLowerCase().includes(lowerFilter)) {
+        if (m.id.toLowerCase().includes(lowerFilter) || (m.name && m.name.toLowerCase().includes(lowerFilter))) {
             const opt = document.createElement('option');
             opt.value = m.id;
             opt.innerText = m.name || m.id;
@@ -161,7 +158,7 @@ function renderModelList(filterText) {
 modelInput.addEventListener('input', (e) => renderModelList(e.target.value));
 refreshBtn.addEventListener('click', fetchModels);
 
-// --- SOHBET GEÇMİŞİ ---
+// --- GEÇMİŞ ---
 function loadChatHistory() {
     const saved = localStorage.getItem('chat_history');
     if (saved) {
@@ -188,7 +185,7 @@ function saveChatHistory() {
 }
 
 clearBtn.addEventListener('click', () => {
-    if(confirm("Sohbet silinsin mi?")) {
+    if(confirm("Silinsin mi?")) {
         chatHistory = [];
         localStorage.removeItem('chat_history');
         chatBox.innerHTML = '';
@@ -250,6 +247,7 @@ function addMessageToUI(content, role, animate = false) {
     bubble.className = 'bubble';
     
     if (animate) {
+        // Lottie URL burada kullanılıyor
         bubble.innerHTML = `
             <div style="display: flex; justify-content: center; align-items: center; overflow: hidden;">
                 <lottie-player src="${paperplaneUrl}" background="transparent" speed="1" style="width: 150px; height: 150px; transform: scale(1.2);" loop autoplay></lottie-player>
@@ -267,7 +265,7 @@ function addMessageToUI(content, role, animate = false) {
 async function sendMessage() {
     const text = promptInput.value.trim();
     if (!text && !currentFile) return;
-    if (!apiKeyInput.value) { alert("Lütfen API Key giriniz!"); return; }
+    if (!apiKeyInput.value) { alert("API Key giriniz!"); return; }
 
     let userContent = [];
     if (text) userContent.push({ type: "text", text: text });
@@ -297,7 +295,7 @@ async function sendMessage() {
 
     try {
         const data = await fetchOpenRouter('/chat/completions', payload, 'POST');
-        const botReply = data.choices?.[0]?.message?.content || "Hata: Boş cevap";
+        const botReply = data.choices?.[0]?.message?.content || "Boş cevap";
         loadingBubble.innerHTML = renderContent(botReply);
         
         chatHistory.push({ role: "assistant", content: botReply });
