@@ -7,7 +7,10 @@ const fileStatus = document.getElementById('file-status');
 const statusBar = document.getElementById('status-bar');
 
 const apiKeyInput = document.getElementById('api-key');
-const modelInput = document.getElementById('model-input'); // Select değil Input+Datalist
+const checkKeyBtn = document.getElementById('check-key-btn');
+const apiStatusSpan = document.getElementById('api-status');
+
+const modelInput = document.getElementById('model-input');
 const modelList = document.getElementById('models-list');
 const refreshBtn = document.getElementById('refresh-models');
 const systemPromptInput = document.getElementById('system-prompt');
@@ -25,20 +28,18 @@ async function initApp() {
     await preloadAnimations();
     loadChatHistory();
 
-    // GitHub Pages'de sistem değişkeni (Env Var) yoktur, sadece LocalStorage'a bakarız.
+    // Kayıtlı ayarları yükle
     apiKeyInput.value = localStorage.getItem('apikey') || '';
-    
-    // Key varsa modelleri çek
-    if(apiKeyInput.value && modelList.options.length <= 1) fetchModels();
-    
     modelInput.value = localStorage.getItem('model') || 'openrouter/auto';
     systemPromptInput.value = localStorage.getItem('sysprompt') || "Sen yardımsever bir asistansın.";
+
+    // Key varsa modelleri çek (Otomatik kontrol opsiyonel)
+    if(apiKeyInput.value && modelList.options.length <= 1) fetchModels();
 }
 
-// --- ANİMASYON ÖN YÜKLEME ---
+// --- ÖN YÜKLEME ---
 async function preloadAnimations() {
     try {
-        // Yolların başında / yok, göreceli yol (relative path) kullanıyoruz
         const res1 = await fetch('lottie/Loading_Paperplane.json');
         const blob1 = await res1.blob();
         paperplaneUrl = URL.createObjectURL(blob1);
@@ -47,12 +48,120 @@ async function preloadAnimations() {
         const blob2 = await res2.blob();
         trashUrl = URL.createObjectURL(blob2);
     } catch (e) {
-        // Hata olursa düz yol
         paperplaneUrl = "lottie/Loading_Paperplane.json";
     }
 }
 
-// --- SOHBET YÖNETİMİ ---
+// --- API KEY KONTROLÜ (MANUEL) ---
+async function checkApiKey() {
+    const key = apiKeyInput.value.trim();
+    if (!key) {
+        alert("Lütfen önce bir API anahtarı girin.");
+        return;
+    }
+
+    checkKeyBtn.innerText = "⏳";
+    checkKeyBtn.disabled = true;
+    apiStatusSpan.style.display = "none";
+    apiKeyInput.style.borderColor = "#3e3e42";
+
+    try {
+        const res = await fetch("https://openrouter.ai/api/v1/auth/key", {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${key}` }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            apiKeyInput.style.borderColor = "#00ff9d";
+            apiStatusSpan.style.display = "block";
+            apiStatusSpan.style.color = "#00ff9d";
+            
+            const label = data.data?.label || "Key";
+            const limit = data.data?.limit ? ` (Limit: ${data.data.limit})` : "";
+            apiStatusSpan.innerText = `✅ Doğrulandı: ${label}${limit}`;
+            
+            saveSettings();
+            if(modelList.options.length <= 1) fetchModels();
+
+        } else { throw new Error("Geçersiz"); }
+    } catch (err) {
+        apiKeyInput.style.borderColor = "#ff4d4d";
+        apiStatusSpan.style.display = "block";
+        apiStatusSpan.style.color = "#ff4d4d";
+        apiStatusSpan.innerText = "❌ Geçersiz API Anahtarı";
+    } finally {
+        checkKeyBtn.innerText = "🔑";
+        checkKeyBtn.disabled = false;
+    }
+}
+checkKeyBtn.addEventListener('click', checkApiKey);
+
+// --- OPENROUTER ÇAĞRISI (GENEL) ---
+async function fetchOpenRouter(endpoint, body = null, method = 'GET') {
+    const key = apiKeyInput.value.trim();
+    if (!key) throw new Error("API Key eksik");
+
+    const headers = {
+        "Authorization": `Bearer ${key}`,
+        "HTTP-Referer": window.location.href,
+        "X-Title": "GitHub Pages WebUI"
+    };
+
+    if (method === 'POST') headers["Content-Type"] = "application/json";
+
+    const options = { method, headers };
+    if (body) options.body = JSON.stringify(body);
+
+    const res = await fetch(`https://openrouter.ai/api/v1${endpoint}`, options);
+    
+    if (!res.ok) {
+        const errText = await res.text();
+        try {
+            const errJson = JSON.parse(errText);
+            throw new Error(errJson.error?.message || "API Hatası");
+        } catch { throw new Error(`Hata: ${res.status} - ${errText}`); }
+    }
+    return await res.json();
+}
+
+// --- MODELLER ---
+async function fetchModels() {
+    refreshBtn.innerText = "...";
+    try {
+        const json = await fetchOpenRouter('/models');
+        if (json.data) {
+            allModelsList = json.data.sort((a, b) => a.id.localeCompare(b.id));
+            renderModelList("");
+            const saved = localStorage.getItem('model');
+            if(saved) modelInput.value = saved;
+        }
+    } catch (err) { alert("Modeller alınamadı: " + err.message); } 
+    finally { refreshBtn.innerText = "🔄 Listeyi Yenile"; }
+}
+
+function renderModelList(filterText) {
+    modelList.innerHTML = '';
+    const autoOpt = document.createElement('option');
+    autoOpt.value = "openrouter/auto";
+    autoOpt.innerText = "Auto (Best/Cheapest)";
+    modelList.appendChild(autoOpt);
+
+    const lowerFilter = filterText.toLowerCase();
+    allModelsList.forEach(m => {
+        const name = (m.name || m.id).toLowerCase();
+        if (name.includes(lowerFilter) || m.id.toLowerCase().includes(lowerFilter)) {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.innerText = m.name || m.id;
+            modelList.appendChild(opt);
+        }
+    });
+}
+modelInput.addEventListener('input', (e) => renderModelList(e.target.value));
+refreshBtn.addEventListener('click', fetchModels);
+
+// --- SOHBET GEÇMİŞİ ---
 function loadChatHistory() {
     const saved = localStorage.getItem('chat_history');
     if (saved) {
@@ -60,14 +169,11 @@ function loadChatHistory() {
             chatHistory = JSON.parse(saved);
             chatHistory.forEach(msg => {
                 let contentToShow = "";
-                if (typeof msg.content === 'string') {
-                    contentToShow = msg.content;
-                } else if (Array.isArray(msg.content)) {
+                if (typeof msg.content === 'string') contentToShow = msg.content;
+                else if (Array.isArray(msg.content)) {
                     const textPart = msg.content.find(p => p.type === 'text');
                     contentToShow = textPart ? textPart.text : '[Dosya]';
-                    if(msg.content.some(p => p.type === 'image_url')) {
-                        contentToShow += ' <br><small><i>[Resim Eklendi]</i></small>';
-                    }
+                    if(msg.content.some(p => p.type === 'image_url')) contentToShow += ' <br><small><i>[Resim]</i></small>';
                 }
                 addMessageToUI(contentToShow, msg.role, false); 
             });
@@ -81,98 +187,15 @@ function saveChatHistory() {
     localStorage.setItem('chat_history', JSON.stringify(historyToSave));
 }
 
-if(clearBtn) {
-    clearBtn.addEventListener('click', () => {
-        if(confirm("Tüm sohbet geçmişi silinsin mi?")) {
-            chatHistory = [];
-            localStorage.removeItem('chat_history');
-            chatBox.innerHTML = '';
-        }
-    });
-}
-
-// --- OPENROUTER API İSTEĞİ (DOĞRUDAN) ---
-async function fetchOpenRouter(endpoint, body = null, method = 'GET') {
-    const key = apiKeyInput.value.trim();
-    if (!key) throw new Error("API Key eksik");
-
-    const headers = {
-        "Authorization": `Bearer ${key}`,
-        "HTTP-Referer": window.location.href, // GitHub Pages URL'si otomatik gider
-        "X-Title": "GitHub Pages WebUI"
-    };
-
-    if (method === 'POST') {
-        headers["Content-Type"] = "application/json";
+clearBtn.addEventListener('click', () => {
+    if(confirm("Sohbet silinsin mi?")) {
+        chatHistory = [];
+        localStorage.removeItem('chat_history');
+        chatBox.innerHTML = '';
     }
+});
 
-    const options = { method, headers };
-    if (body) options.body = JSON.stringify(body);
-
-    const res = await fetch(`https://openrouter.ai/api/v1${endpoint}`, options);
-    
-    if (!res.ok) {
-        const errText = await res.text();
-        try {
-            const errJson = JSON.parse(errText);
-            throw new Error(errJson.error?.message || "API Hatası");
-        } catch {
-            throw new Error(`Hata: ${res.status} - ${errText}`);
-        }
-    }
-    return await res.json();
-}
-
-// --- MODEL LİSTESİ ---
-async function fetchModels() {
-    refreshBtn.innerText = "...";
-    try {
-        // Doğrudan OpenRouter'dan çekiyoruz
-        const json = await fetchOpenRouter('/models');
-        
-        if (json.data) {
-            allModelsList = json.data.sort((a, b) => a.id.localeCompare(b.id));
-            renderModelList("");
-            
-            const saved = localStorage.getItem('model');
-            if(saved) modelInput.value = saved;
-        }
-    } catch (err) { 
-        alert("Model listesi alınamadı: " + err.message);
-    } finally { 
-        refreshBtn.innerText = "🔄 Listeyi Yenile"; 
-    }
-}
-
-function renderModelList(filterText) {
-    const currentVal = modelInput.value;
-    modelList.innerHTML = '';
-
-    const autoOpt = document.createElement('option');
-    autoOpt.value = "openrouter/auto";
-    autoOpt.innerText = "Auto (Best/Cheapest)";
-    modelList.appendChild(autoOpt);
-
-    const lowerFilter = filterText.toLowerCase();
-    
-    allModelsList.forEach(m => {
-        const modelName = (m.name || m.id).toLowerCase();
-        const modelId = m.id.toLowerCase();
-
-        if (modelName.includes(lowerFilter) || modelId.includes(lowerFilter)) {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            opt.innerText = m.name || m.id;
-            modelList.appendChild(opt);
-        }
-    });
-}
-
-// Input dinleyicileri
-modelInput.addEventListener('input', (e) => renderModelList(e.target.value));
-refreshBtn.addEventListener('click', fetchModels);
-
-// --- AYARLARI KAYDET ---
+// --- AYARLAR ---
 let currentFile = null;
 const saveSettings = () => {
     localStorage.setItem('apikey', apiKeyInput.value);
@@ -194,7 +217,7 @@ fileInput.addEventListener('change', (e) => {
     }
 });
 
-// --- LATEX VE RENDER ---
+// --- RENDER ---
 function preprocessLaTeX(text) {
     if (!text) return "";
     text = text.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$');
@@ -229,26 +252,18 @@ function addMessageToUI(content, role, animate = false) {
     if (animate) {
         bubble.innerHTML = `
             <div style="display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                <lottie-player 
-                    src="${paperplaneUrl}" 
-                    background="transparent" 
-                    speed="1" 
-                    style="width: 150px; height: 150px; transform: scale(1.2);" 
-                    loop 
-                    autoplay>
-                </lottie-player>
+                <lottie-player src="${paperplaneUrl}" background="transparent" speed="1" style="width: 150px; height: 150px; transform: scale(1.2);" loop autoplay></lottie-player>
             </div>`;
     } else {
         bubble.innerHTML = renderContent(content);
     }
-    
     div.appendChild(bubble);
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
     return bubble;
 }
 
-// --- MESAJ GÖNDERME ---
+// --- GÖNDER ---
 async function sendMessage() {
     const text = promptInput.value.trim();
     if (!text && !currentFile) return;
@@ -256,15 +271,11 @@ async function sendMessage() {
 
     let userContent = [];
     if (text) userContent.push({ type: "text", text: text });
-    if (currentFile) {
-        userContent.push({ type: "image_url", image_url: { url: currentFile.data } });
-    }
+    if (currentFile) userContent.push({ type: "image_url", image_url: { url: currentFile.data } });
 
     let displayHtml = text;
     if (currentFile) displayHtml += ` <br><small>📎 ${currentFile.name}</small>`;
-    if (currentFile && currentFile.type.startsWith('image')) {
-        displayHtml += `<br><img src="${currentFile.data}" width="200">`;
-    }
+    if (currentFile && currentFile.type.startsWith('image')) displayHtml += `<br><img src="${currentFile.data}" width="200">`;
     addMessageToUI(displayHtml, 'user');
 
     chatHistory.push({ role: "user", content: userContent });
@@ -273,7 +284,6 @@ async function sendMessage() {
     promptInput.value = '';
     const loadingBubble = addMessageToUI('', 'bot', true);
 
-    // Sistem mesajını geçmişin en başına ekle (OpenRouter formatı)
     const messagesToSend = [
         { role: "system", content: systemPromptInput.value },
         ...chatHistory
@@ -286,9 +296,7 @@ async function sendMessage() {
     };
 
     try {
-        // DOĞRUDAN OPENROUTER ÇAĞRISI
         const data = await fetchOpenRouter('/chat/completions', payload, 'POST');
-        
         const botReply = data.choices?.[0]?.message?.content || "Hata: Boş cevap";
         loadingBubble.innerHTML = renderContent(botReply);
         
@@ -298,9 +306,7 @@ async function sendMessage() {
         if (window.renderMathInElement) {
             renderMathInElement(loadingBubble, {delimiters: [{left: '$', right: '$', display: false}]});
         }
-    } catch (err) {
-        loadingBubble.innerText = "Hata: " + err.message;
-    }
+    } catch (err) { loadingBubble.innerText = "Hata: " + err.message; }
 
     currentFile = null;
     fileInput.value = '';
@@ -308,8 +314,6 @@ async function sendMessage() {
 }
 
 sendBtn.addEventListener('click', sendMessage);
-promptInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
+promptInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 
 initApp();

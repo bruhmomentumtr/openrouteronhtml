@@ -10,8 +10,7 @@
 
 body {
     margin: 0;
-    /* Varsayılan font (Sohbet burayı kullanır) */
-    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
@@ -19,12 +18,9 @@ body {
     font-weight: 400;
 }
 
-.main-layout {
-    display: flex;
-    height: 100%;
-}
+.main-layout { display: flex; height: 100%; }
 
-/* --- SOL PANEL (AYARLAR - OPEN SANS) --- */
+/* SOL PANEL */
 .sidebar {
     width: 300px;
     min-width: 300px;
@@ -35,13 +31,12 @@ body {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
-    /* Yan panel için fontu değiştiriyoruz */
-    font-family: 'Open Sans', 'Segoe UI', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .sidebar-header {
     font-size: 1.2rem;
-    font-weight: 600; /* Open Sans SemiBold */
+    font-weight: 600;
     border-bottom: 1px solid var(--border);
     padding-bottom: 15px;
     margin-bottom: 5px;
@@ -50,48 +45,27 @@ body {
     gap: 10px;
 }
 
-    .sidebar-header img {
-        filter: drop-shadow(0 0 2px rgba(0, 120, 212, 0.5));
-    }
+.sidebar-header img { filter: drop-shadow(0 0 2px rgba(0, 120, 212, 0.5)); }
 
-.setting-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.setting-group { display: flex; flex-direction: column; gap: 8px; }
+.setting-group label { font-size: 0.85rem; color: #aaaaaa; font-weight: 600; }
+
+.setting-group input, .setting-group select, .setting-group textarea {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s;
+    font-size: 0.9rem;
 }
 
-    .setting-group label {
-        font-size: 0.85rem; /* Ayar etiketleri biraz daha kompakt */
-        color: #aaaaaa;
-        font-weight: 600; /* Başlıklar belirgin olsun */
-    }
-
-    .setting-group input,
-    .setting-group select,
-    .setting-group textarea {
-        background: var(--input-bg);
-        border: 1px solid var(--border);
-        color: white;
-        padding: 10px;
-        border-radius: 6px;
-        outline: none;
-        font-family: inherit; /* Open Sans'ı miras al */
-        resize: vertical;
-        transition: border-color 0.2s;
-        font-size: 0.9rem;
-    }
-
-        .setting-group input:focus,
-        .setting-group select:focus,
-        .setting-group textarea:focus {
-            border-color: var(--accent);
-        }
-
-        .setting-group input:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            background-color: #2d2d2d;
-        }
+.setting-group input:focus, .setting-group select:focus, .setting-group textarea:focus {
+    border-color: var(--accent);
+}
 
 .small-btn {
     background: #444444;
@@ -102,13 +76,11 @@ body {
     border-radius: 6px;
     font-size: 0.85rem;
     transition: background 0.2s;
-    font-family: inherit; /* Open Sans */
+    font-family: inherit;
     font-weight: 600;
 }
-
-    .small-btn:hover {
-        background: #555555;
-    }
+.small-btn:hover { background: #555555; }
+.small-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .status-bar {
     margin-top: auto;
@@ -117,10 +89,9 @@ body {
     border-top: 1px solid var(--border);
     padding-top: 15px;
     text-align: center;
-    font-family: 'Open Sans', sans-serif;
 }
 
-/* --- SAĞ PANEL (SOHBET - ROBOTO) --- */
+/* SAĞ PANEL */
 .chat-area {
     flex: 1;
     display: flex;
@@ -128,7 +99,6 @@ body {
     position: relative;
     background-color: var(--bg);
     min-width: 0;
-    /* Sohbet alanı için Roboto'yu garantile */
     font-family: 'Roboto', sans-serif;
 }
 
@@ -142,18 +112,9 @@ body {
     scroll-behavior: smooth;
 }
 
-.message {
-    display: flex;
-    width: 100%;
-}
-
-    .message.user {
-        justify-content: flex-end;
-    }
-
-    .message.bot {
-        justify-content: flex-start;
-    }
+.message { display: flex; width: 100%; }
+.message.user { justify-content: flex-end; }
+.message.bot { justify-content: flex-start; }
 
 .bubble {
     max-width: 80%;
@@ -166,69 +127,22 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.user .bubble {
-    background: var(--accent);
-    color: white;
-    border-bottom-right-radius: 2px;
-}
+.user .bubble { background: var(--accent); color: white; border-bottom-right-radius: 2px; }
+.bot .bubble { background: var(--sidebar); border: 1px solid var(--border); border-bottom-left-radius: 2px; }
 
-.bot .bubble {
-    background: var(--sidebar);
-    border: 1px solid var(--border);
-    border-bottom-left-radius: 2px;
-}
+.bubble img { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #444; }
+.bubble pre { background: var(--code-bg); padding: 15px; border-radius: 6px; overflow-x: auto; border: 1px solid #444; margin: 10px 0; }
+.bubble code { font-family: 'Consolas', monospace; color: #e0e0e0; background: rgba(255, 255, 255, 0.1); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 5px 0; }
 
-/* --- İÇERİK STİLLERİ --- */
-.bubble img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-top: 10px;
-    border: 1px solid #444;
-}
-
-.bubble pre {
-    background: var(--code-bg);
-    padding: 15px;
-    border-radius: 6px;
-    overflow-x: auto;
-    border: 1px solid #444;
-    margin: 10px 0;
-}
-
-.bubble code {
-    font-family: 'Consolas', 'Monaco', monospace; /* Kodlar her zaman monospace */
-    color: #e0e0e0;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-.bubble pre code {
-    background: transparent;
-    padding: 0;
-    color: #ff7b72;
-    border: none;
-}
-
-.katex-display {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 5px 0;
-    margin: 0.5em 0;
-}
-
-/* --- INPUT ALANI --- */
+/* INPUT ALANI */
 .input-area {
     padding: 15px 20px;
     background: var(--sidebar);
     border-top: 1px solid var(--border);
     display: flex;
     gap: 10px;
-    align-items: flex-end;
-    /* Input alanı Sidebar'ın bir parçası gibi dursa da Roboto kullanmalı mı? 
-       Genelde input'lar arayüz fontu (Open Sans) veya chat fontu (Roboto) olabilir.
-       Kullanıcı deneyimi için Chat fontu (Roboto) daha iyidir. */
+    align-items: flex-end; 
     font-family: 'Roboto', sans-serif;
 }
 
@@ -242,16 +156,13 @@ textarea {
     outline: none;
     max-height: 150px;
     min-height: 45px;
-    font-family: inherit; /* Roboto */
+    font-family: inherit;
     resize: none;
     font-size: 0.95rem;
     transition: border-color 0.2s;
     line-height: 1.4;
 }
-
-    textarea:focus {
-        border-color: var(--accent);
-    }
+textarea:focus { border-color: var(--accent); }
 
 button#send-btn {
     background: var(--accent);
@@ -263,17 +174,10 @@ button#send-btn {
     height: 45px;
     font-weight: 700;
     font-size: 0.9rem;
-    transition: opacity 0.2s, transform 0.1s;
-    font-family: inherit; /* Roboto */
+    transition: opacity 0.2s;
+    font-family: inherit;
 }
-
-    button#send-btn:hover {
-        opacity: 0.9;
-    }
-
-    button#send-btn:active {
-        transform: scale(0.98);
-    }
+button#send-btn:hover { opacity: 0.9; }
 
 .icon-btn {
     background: transparent;
@@ -285,45 +189,13 @@ button#send-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 45px;
-    width: 45px;
-    font-size: 1.5rem;
+    height: 45px; width: 45px; font-size: 1.5rem; 
 }
+.icon-btn:hover { color: white; transform: scale(1.1); }
 
-    .icon-btn:hover {
-        color: white;
-        transform: scale(1.1);
-    }
+#file-status { font-size: 0.8rem; color: #00ff9d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; align-self: center; font-family: 'Open Sans', sans-serif; }
 
-    .icon-btn:active {
-        transform: scale(0.95);
-    }
-
-#file-status {
-    font-size: 0.8rem;
-    color: #00ff9d;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 150px;
-    align-self: center;
-    font-family: 'Open Sans', sans-serif; /* Bilgi mesajı olduğu için Open Sans */
-}
-
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg);
-}
-
-::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 4px;
-}
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
