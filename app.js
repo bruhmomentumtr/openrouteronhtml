@@ -43,12 +43,12 @@ async function preloadAnimations() {
         // GitHub Pages alt klasörde çalışsa bile bu göreceli yollar çalışır.
         // Klasör adı 'lottie' (küçük harf) olmalı!
         
-        const res1 = await fetch('lottie/Loading_Paperplane.json');
+        const res1 = await fetch('Lottie/Loading_Paperplane.json');
         if(!res1.ok) throw new Error("Paperplane bulunamadı");
         const blob1 = await res1.blob();
         paperplaneUrl = URL.createObjectURL(blob1);
 
-        const res2 = await fetch('lottie/Delete_animation.json');
+        const res2 = await fetch('Lottie/Delete_animation.json');
         if(!res2.ok) throw new Error("Delete animasyonu bulunamadı");
         const blob2 = await res2.blob();
         trashUrl = URL.createObjectURL(blob2);
@@ -57,7 +57,7 @@ async function preloadAnimations() {
     } catch (e) {
         console.error("Animasyon hatası:", e);
         // Hata durumunda da string olarak yolu verelim, belki Lottie Player kendisi çözer
-        paperplaneUrl = "lottie/Loading_Paperplane.json";
+        paperplaneUrl = "Lottie/Loading_Paperplane.json";
     }
 }
 
