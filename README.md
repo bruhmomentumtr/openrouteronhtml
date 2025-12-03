@@ -24,7 +24,7 @@ Akıllı telefonunuzla kolayca erişmek için QR kodu tarayın.
 ## 🛡️ Dikkat!
 
 - **API Key’inizi kimseyle paylaşmayın!**  
-- Tüm kod client-side’da çalışır, verileriniz saklanmaz.
+- Tüm kod client-side’da çalışır, verileriniz "çerezler haricinde" saklanmaz.
 
 ---
 
